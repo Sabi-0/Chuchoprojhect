@@ -17,16 +17,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.example.chuchoprojhect.util.subirImagenAFirebase
-import com.example.chuchoprojhect.util.guardarPerroEnFirestore
+
 
 @Composable
 fun AgregarPerroScreen(
-    onSubmit: (String, String, String, Uri?) -> Unit
+    onSubmit: (String, String, String, String, Uri?) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var lugar by remember { mutableStateOf("") }
+    var contacto by remember { mutableStateOf("") } // nuevo
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -36,8 +36,7 @@ fun AgregarPerroScreen(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -56,6 +55,14 @@ fun AgregarPerroScreen(
             OutlinedTextField(value = descripcion, onValueChange = { descripcion = it }, label = { Text("Descripción") })
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(value = lugar, onValueChange = { lugar = it }, label = { Text("¿De dónde nos saludas?") })
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = contacto,
+                onValueChange = { contacto = it.filter { char -> char.isDigit() } }, // solo números
+                label = { Text("Número de contacto (+502)") },
+                placeholder = { Text("Ejemplo: 12345678") },
+                singleLine = true
+            )
             Spacer(Modifier.height(12.dp))
 
             Button(onClick = { launcher.launch("image/*") }) {
@@ -67,9 +74,7 @@ fun AgregarPerroScreen(
                 Image(
                     painter = rememberAsyncImagePainter(it),
                     contentDescription = "Imagen seleccionada",
-                    modifier = Modifier
-                        .size(150.dp)
-                        .padding(8.dp)
+                    modifier = Modifier.size(150.dp).padding(8.dp)
                 )
             }
 
@@ -77,7 +82,9 @@ fun AgregarPerroScreen(
 
             Button(
                 onClick = {
-                    onSubmit(nombre, descripcion, lugar, imagenUri)
+                    // Añadimos +502 delante del contacto automáticamente
+                    val contactoCompleto = if (contacto.startsWith("+502")) contacto else "+502$contacto"
+                    onSubmit(nombre, descripcion, lugar, contactoCompleto, imagenUri)
                 },
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF8B5E3C))
             ) {
@@ -90,5 +97,5 @@ fun AgregarPerroScreen(
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun AgregarPerroScreenPreview() {
-    AgregarPerroScreen(onSubmit = { _, _, _, _ -> })
+    AgregarPerroScreen(onSubmit = { _, _, _, _, _ -> })
 }

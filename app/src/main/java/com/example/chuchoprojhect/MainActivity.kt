@@ -30,6 +30,10 @@ import com.google.firebase.FirebaseApp
 import com.example.chuchoprojhect.util.subirImagenAFirebase
 import com.example.chuchoprojhect.util.guardarPerroEnFirestore
 import android.util.Log
+import com.example.chuchoprojhect.screen.PantallaListaPerros
+
+
+
 
 
 class MainActivity : ComponentActivity() {
@@ -66,12 +70,11 @@ fun AppNavigation() {
         ) {
             composable(Screen.Screen1.route) { Screen1() }
             composable(Screen.Screen2.route) {
-                AgregarPerroScreen { nombre, descripcion, lugar, uri ->
+                AgregarPerroScreen { nombre, descripcion, lugar, contacto, uri ->
                     subirImagenAFirebase(uri,
                         onSuccess = { imageUrl ->
-                            guardarPerroEnFirestore(nombre, descripcion, lugar, imageUrl,
+                            guardarPerroEnFirestore(nombre, descripcion, lugar, contacto, imageUrl,
                                 onSuccess = {
-                                    // Podés mostrar un Toast, Snackbar, o navegar a otra pantalla
                                     Log.d("Firebase", "Perro guardado exitosamente.")
                                 },
                                 onFailure = {
@@ -85,6 +88,7 @@ fun AppNavigation() {
                     )
                 }
             }
+
             composable(Screen.Screen3.route) { Screen3() }
         }
     }
@@ -93,7 +97,7 @@ fun AppNavigation() {
 sealed class Screen(val route: String, val title: String) {
     object Screen1 : Screen("screen1", "Inicio")
     object Screen2 : Screen("screen2", "Poner en adopción")
-    object Screen3 : Screen("screen3", "Pantalla 3")
+    object Screen3 : Screen("screen3", "Iniciar sesión")
 
     companion object {
         val items = listOf(Screen1, Screen2, Screen3)
@@ -102,11 +106,7 @@ sealed class Screen(val route: String, val title: String) {
 
 @Composable
 fun Screen1() {
-    Text(
-        text = "Pantalla 1",
-        modifier = Modifier.fillMaxSize(),
-        style = MaterialTheme.typography.headlineLarge
-    )
+    PantallaListaPerros()
 }
 
 @Composable
