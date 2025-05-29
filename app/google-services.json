@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "24982302854",
+    "project_id": "adogtame-mobile",
+    "storage_bucket": "adogtame-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24982302854:android:898d3d1e794378649a6107",
+        "android_client_info": {
+          "package_name": "com.example.chuchoprojhect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPQ4XHjJCOer5JuMGetD1mHGvcKtL54Vs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -25,10 +25,17 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.chuchoprojhect.ui.theme.ChuchoprojhectTheme
 import kotlin.collections.listOf
+import com.example.chuchoprojhect.screen.AgregarPerroScreen
+import com.google.firebase.FirebaseApp
+import com.example.chuchoprojhect.util.subirImagenAFirebase
+import com.example.chuchoprojhect.util.guardarPerroEnFirestore
+import android.util.Log
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         enableEdgeToEdge()
         setContent {
             MyApp()
@@ -58,15 +65,34 @@ fun AppNavigation() {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(Screen.Screen1.route) { Screen1() }
-            composable(Screen.Screen2.route) { Screen2() }
+            composable(Screen.Screen2.route) {
+                AgregarPerroScreen { nombre, descripcion, lugar, uri ->
+                    subirImagenAFirebase(uri,
+                        onSuccess = { imageUrl ->
+                            guardarPerroEnFirestore(nombre, descripcion, lugar, imageUrl,
+                                onSuccess = {
+                                    // Podés mostrar un Toast, Snackbar, o navegar a otra pantalla
+                                    Log.d("Firebase", "Perro guardado exitosamente.")
+                                },
+                                onFailure = {
+                                    Log.e("Firebase", "Error al guardar datos en Firestore.")
+                                }
+                            )
+                        },
+                        onFailure = {
+                            Log.e("Firebase", "Error al subir imagen.")
+                        }
+                    )
+                }
+            }
             composable(Screen.Screen3.route) { Screen3() }
         }
     }
 }
 
 sealed class Screen(val route: String, val title: String) {
-    object Screen1 : Screen("screen1", "Pantalla 1")
-    object Screen2 : Screen("screen2", "Pantalla 2")
+    object Screen1 : Screen("screen1", "Inicio")
+    object Screen2 : Screen("screen2", "Poner en adopción")
     object Screen3 : Screen("screen3", "Pantalla 3")
 
     companion object {
