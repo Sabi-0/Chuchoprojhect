@@ -4,37 +4,35 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.chuchoprojhect.ui.theme.ChuchoprojhectTheme
-import kotlin.collections.listOf
+import com.example.chuchoprojhect.auth.AuthViewModel
+import com.example.chuchoprojhect.auth.LoginScreen
+import com.example.chuchoprojhect.auth.ProfileScreen
+import com.example.chuchoprojhect.components.AuthButton
 import com.example.chuchoprojhect.screen.AgregarPerroScreen
-import com.google.firebase.FirebaseApp
-import com.example.chuchoprojhect.util.subirImagenAFirebase
-import com.example.chuchoprojhect.util.guardarPerroEnFirestore
-import android.util.Log
 import com.example.chuchoprojhect.screen.PantallaListaPerros
-
-
-
-
+import com.example.chuchoprojhect.ui.theme.ChuchoprojhectTheme
+import com.example.chuchoprojhect.util.guardarPerroEnFirestore
+import com.example.chuchoprojhect.util.subirImagenAFirebase
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseUser
+import android.util.Log
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,19 +48,52 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp() {
     ChuchoprojhectTheme {
+        // A surface container using the 'background' color from the theme
         Surface(modifier = Modifier.fillMaxSize()) {
-            AppNavigation()
+            val authViewModel: AuthViewModel = viewModel()
+            AppNavigation(authViewModel)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation() {
+fun AppNavigation(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
+    var showLoginDialog by remember { mutableStateOf(false) }
+    val user by authViewModel.userState.collectAsState()
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Adopta un perrito") },
+                actions = {
+                    AuthButton(
+                        authViewModel = authViewModel,
+                        modifier = Modifier.padding(end = 8.dp),
+                        onLoginClick = { showLoginDialog = true }
+                    )
+                }
+            )
+        },
         bottomBar = { BottomNavigationBar(navController) }
     ) { paddingValues ->
+        if (showLoginDialog) {
+            AlertDialog(
+                onDismissRequest = { showLoginDialog = false },
+                title = { Text("Autenticación") },
+                text = {
+                    LoginScreen(
+                        authViewModel = authViewModel,
+                        navController = navController,
+                        onDismiss = { showLoginDialog = false }
+                    )
+                },
+                confirmButton = {},
+                dismissButton = {}
+            )
+        }
+
         NavHost(
             navController = navController,
             startDestination = Screen.Screen1.route,
@@ -88,16 +119,31 @@ fun AppNavigation() {
                     )
                 }
             }
-
-            composable(Screen.Screen3.route) { Screen3() }
+            composable(Screen.Screen3.route) {
+                if (user != null) {
+                    ProfileScreen(authViewModel = authViewModel, user = user)
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Debes iniciar sesión para ver tu perfil")
+                            Button(onClick = { showLoginDialog = true }) {
+                                Text("Iniciar sesión")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 sealed class Screen(val route: String, val title: String) {
     object Screen1 : Screen("screen1", "Inicio")
-    object Screen2 : Screen("screen2", "Poner en adopción")
-    object Screen3 : Screen("screen3", "Iniciar sesión")
+    object Screen2 : Screen("screen2", "Publicar")
+    object Screen3 : Screen("screen3", "Perfil")
 
     companion object {
         val items = listOf(Screen1, Screen2, Screen3)
@@ -112,16 +158,7 @@ fun Screen1() {
 @Composable
 fun Screen2() {
     Text(
-        text = "Pantalla 2",
-        modifier = Modifier.fillMaxSize(),
-        style = MaterialTheme.typography.headlineLarge
-    )
-}
-
-@Composable
-fun Screen3() {
-    Text(
-        text = "Pantalla 3",
+        text = "Publicar nuevo perro",
         modifier = Modifier.fillMaxSize(),
         style = MaterialTheme.typography.headlineLarge
     )
