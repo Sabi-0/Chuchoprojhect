@@ -214,6 +214,7 @@ data class Perro(
     val imagenUrl: String = "",
     val contacto: String = ""
 )
-
+------------------------------------------------------------------------------------------------------------
 Diagrama de flujo:
 
+    
