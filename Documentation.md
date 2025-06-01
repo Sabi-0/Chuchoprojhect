@@ -17,21 +17,6 @@ Esperar a que se sincronicen las dependencias
 "File > Sync Project with Gradle Files"
 -----------------------------------------------------------------------------------------------------------------------
 Estructura del proyecto
-app/
-├── src/
-│   ├── main/
-│   │   ├── java/com/example/chuchoprojhect/
-│   │   │   ├── auth/           # Autenticación
-│   │   │   ├── components/     # Componentes reutilizables
-│   │   │   ├── model/          # Modelos de datos
-│   │   │   ├── screen/         # Pantallas principales
-│   │   │   ├── util/           # Utilidades
-│   │   │   ├── viewmodels/     # ViewModels
-│   │   │   └── MainActivity.kt # Punto de entrada
-│   │   └── res/                # Recursos
-│   └── test/                   # Pruebas unitarias
-build.gradle                    # Configuración principal
-
 ![image](https://github.com/user-attachments/assets/7004abe5-f0d2-4000-92fb-477073633188)
 
 -----------------------------------------------------------------------------------------------------------------------
