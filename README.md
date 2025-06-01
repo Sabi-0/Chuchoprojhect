@@ -32,6 +32,8 @@ app/
 │   └── test/                   # Pruebas unitarias
 build.gradle                    # Configuración principal
 
+![image](https://github.com/user-attachments/assets/7004abe5-f0d2-4000-92fb-477073633188)
+
 -----------------------------------------------------------------------------------------------------------------------
 Flujo Básico de la Aplicación
 
