@@ -4,17 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -31,8 +27,9 @@ import com.example.chuchoprojhect.ui.theme.ChuchoprojhectTheme
 import com.example.chuchoprojhect.util.guardarPerroEnFirestore
 import com.example.chuchoprojhect.util.subirImagenAFirebase
 import com.google.firebase.FirebaseApp
-import com.google.firebase.auth.FirebaseUser
 import android.util.Log
+import androidx.compose.ui.unit.dp
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,18 +44,27 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MyApp() {
-    ChuchoprojhectTheme {
-        // A surface container using the 'background' color from the theme
+    var darkModeEnabled by remember { mutableStateOf(false) }
+
+    ChuchoprojhectTheme(darkTheme = darkModeEnabled) {
         Surface(modifier = Modifier.fillMaxSize()) {
             val authViewModel: AuthViewModel = viewModel()
-            AppNavigation(authViewModel)
+            AppNavigation(
+                authViewModel = authViewModel,
+                darkModeEnabled = darkModeEnabled,
+                onToggleDarkMode = { enabled -> darkModeEnabled = enabled }
+            )
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation(authViewModel: AuthViewModel) {
+fun AppNavigation(
+    authViewModel: AuthViewModel,
+    darkModeEnabled: Boolean,
+    onToggleDarkMode: (Boolean) -> Unit
+) {
     val navController = rememberNavController()
     var showLoginDialog by remember { mutableStateOf(false) }
     val user by authViewModel.userState.collectAsState()
@@ -78,6 +84,7 @@ fun AppNavigation(authViewModel: AuthViewModel) {
         },
         bottomBar = { BottomNavigationBar(navController) }
     ) { paddingValues ->
+
         if (showLoginDialog) {
             AlertDialog(
                 onDismissRequest = { showLoginDialog = false },
@@ -101,40 +108,44 @@ fun AppNavigation(authViewModel: AuthViewModel) {
         ) {
             composable(Screen.Screen1.route) { Screen1() }
             composable(Screen.Screen2.route) {
-                AgregarPerroScreen { nombre, descripcion, lugar, contacto, uri ->
-                    subirImagenAFirebase(uri,
-                        onSuccess = { imageUrl ->
-                            guardarPerroEnFirestore(nombre, descripcion, lugar, contacto, imageUrl,
-                                onSuccess = {
-                                    Log.d("Firebase", "Perro guardado exitosamente.")
-                                },
-                                onFailure = {
-                                    Log.e("Firebase", "Error al guardar datos en Firestore.")
-                                }
-                            )
-                        },
-                        onFailure = {
-                            Log.e("Firebase", "Error al subir imagen.")
-                        }
-                    )
-                }
-            }
-            composable(Screen.Screen3.route) {
-                if (user != null) {
-                    ProfileScreen(authViewModel = authViewModel, user = user)
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Debes iniciar sesión para ver tu perfil")
-                            Button(onClick = { showLoginDialog = true }) {
-                                Text("Iniciar sesión")
+                    AgregarPerroScreen { nombre, descripcion, lugar, contacto, uri, limpiarCampos ->
+                        subirImagenAFirebase(
+                            uri,
+                            onSuccess = { imageUrl ->
+                                guardarPerroEnFirestore(
+                                    user,
+                                    nombre,
+                                    descripcion,
+                                    lugar,
+                                    contacto,
+                                    imageUrl,
+                                    onSuccess = {
+                                        limpiarCampos()  // Limpiar campos en la UI
+                                        Log.d("Firebase", "Perro guardado exitosamente.")
+                                    },
+                                    onFailure = {
+                                        Log.e("Firebase", "Error al guardar datos en Firestore.")
+                                    }
+                                )
+                            },
+                            onFailure = {
+                                Log.e("Firebase", "Error al subir imagen.")
                             }
-                        }
+                        )
                     }
                 }
+            composable(Screen.Screen3.route) {
+                ProfileScreen(
+                    authViewModel = authViewModel,
+                    darkModeEnabled = darkModeEnabled,
+                    onToggleDarkMode = onToggleDarkMode,
+                    onSignOut = {
+                        authViewModel.signOut()
+                        navController.navigate(Screen.Screen1.route) {
+                            popUpTo(Screen.Screen1.route) { inclusive = true }
+                        }
+                    }
+                )
             }
         }
     }
@@ -153,15 +164,6 @@ sealed class Screen(val route: String, val title: String) {
 @Composable
 fun Screen1() {
     PantallaListaPerros()
-}
-
-@Composable
-fun Screen2() {
-    Text(
-        text = "Publicar nuevo perro",
-        modifier = Modifier.fillMaxSize(),
-        style = MaterialTheme.typography.headlineLarge
-    )
 }
 
 @Composable

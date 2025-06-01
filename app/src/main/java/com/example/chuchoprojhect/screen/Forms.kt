@@ -21,12 +21,12 @@ import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun AgregarPerroScreen(
-    onSubmit: (String, String, String, String, Uri?) -> Unit
+    onSubmit: (String, String, String, String, Uri?, () -> Unit) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var lugar by remember { mutableStateOf("") }
-    var contacto by remember { mutableStateOf("") } // nuevo
+    var contacto by remember { mutableStateOf("") }
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -50,15 +50,27 @@ fun AgregarPerroScreen(
             Text("Agregar perro", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
             Spacer(Modifier.height(16.dp))
-            OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre del perrito") })
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre del perrito") }
+            )
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(value = descripcion, onValueChange = { descripcion = it }, label = { Text("Descripción") })
+            OutlinedTextField(
+                value = descripcion,
+                onValueChange = { descripcion = it },
+                label = { Text("Descripción") }
+            )
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(value = lugar, onValueChange = { lugar = it }, label = { Text("¿De dónde nos saludas?") })
+            OutlinedTextField(
+                value = lugar,
+                onValueChange = { lugar = it },
+                label = { Text("¿De dónde nos saludas?") }
+            )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = contacto,
-                onValueChange = { contacto = it.filter { char -> char.isDigit() } }, // solo números
+                onValueChange = { contacto = it.filter { char -> char.isDigit() } },
                 label = { Text("Número de contacto (+502)") },
                 placeholder = { Text("Ejemplo: 12345678") },
                 singleLine = true
@@ -82,9 +94,15 @@ fun AgregarPerroScreen(
 
             Button(
                 onClick = {
-                    // Añadimos +502 delante del contacto automáticamente
                     val contactoCompleto = if (contacto.startsWith("+502")) contacto else "+502$contacto"
-                    onSubmit(nombre, descripcion, lugar, contactoCompleto, imagenUri)
+                    onSubmit(nombre, descripcion, lugar, contactoCompleto, imagenUri) {
+                        // Resetear campos después de que se haya guardado con éxito
+                        nombre = ""
+                        descripcion = ""
+                        lugar = ""
+                        contacto = ""
+                        imagenUri = null
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF8B5E3C))
             ) {
@@ -97,5 +115,5 @@ fun AgregarPerroScreen(
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun AgregarPerroScreenPreview() {
-    AgregarPerroScreen(onSubmit = { _, _, _, _, _ -> })
+    AgregarPerroScreen(onSubmit = { _, _, _, _, _,_ -> })
 }

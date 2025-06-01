@@ -18,6 +18,9 @@ import com.example.chuchoprojhect.util.obtenerPerrosDesdeFirestore
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.filled.Person
+
 
 
 @Composable
@@ -84,6 +87,42 @@ fun PantallaListaPerros() {
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                if (perro.usuarioFoto.isNotEmpty()) {
+                                    Image(
+                                        painter = rememberAsyncImagePainter(perro.usuarioFoto),
+                                        contentDescription = "Foto del usuario",
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .padding(end = 8.dp)
+                                            .aspectRatio(1f)
+                                            .clip(MaterialTheme.shapes.small)
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = "Sin foto",
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .padding(end = 8.dp)
+                                            .aspectRatio(1f)
+                                            .clip(MaterialTheme.shapes.small),
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                    )
+                                }
+
+                                Text(
+                                    text = perro.usuarioNombre,
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
                             Text(text = perro.nombre, style = MaterialTheme.typography.titleLarge)
                             Spacer(modifier = Modifier.height(8.dp))
                             Image(

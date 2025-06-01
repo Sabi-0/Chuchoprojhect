@@ -1,5 +1,7 @@
 package com.example.chuchoprojhect.util
 import com.example.chuchoprojhect.model.Perro
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 
 import android.net.Uri
 import com.google.firebase.firestore.FirebaseFirestore
@@ -8,10 +10,11 @@ import java.util.*
 
 
 fun guardarPerroEnFirestore(
+    user: FirebaseUser?,
     nombre: String,
     descripcion: String,
     lugar: String,
-    contacto: String, // nuevo parámetro
+    contacto: String,
     imageUrl: String,
     onSuccess: () -> Unit,
     onFailure: () -> Unit
@@ -21,15 +24,18 @@ fun guardarPerroEnFirestore(
         "nombre" to nombre,
         "descripcion" to descripcion,
         "lugar" to lugar,
-        "contacto" to contacto,  // guardamos contacto
+        "contacto" to contacto,
         "imagenUrl" to imageUrl,
-        "timestamp" to System.currentTimeMillis()
+        "timestamp" to System.currentTimeMillis(),
+        "usuarioNombre" to (user?.displayName ?: "Anónimo"),
+        "usuarioFoto" to (user?.photoUrl?.toString() ?: "")
     )
     db.collection("perros")
         .add(perro)
         .addOnSuccessListener { onSuccess() }
         .addOnFailureListener { onFailure() }
 }
+
 
 fun obtenerPerrosDesdeFirestore(
     onSuccess: (List<Perro>) -> Unit,
@@ -74,4 +80,27 @@ fun subirImagenAFirebase(
         .addOnFailureListener {
             onFailure()
         }
+}
+
+fun actualizarPerfilUsuario(
+    user: FirebaseUser,
+    nombre: String?,
+    photoUrl: String?,
+    onSuccess: () -> Unit,
+    onFailure: (Exception) -> Unit
+) {
+    val profileUpdates = UserProfileChangeRequest.Builder()
+        .apply {
+            if (!nombre.isNullOrEmpty()) {
+                setDisplayName(nombre)
+            }
+            if (!photoUrl.isNullOrEmpty()) {
+                setPhotoUri(Uri.parse(photoUrl))
+            }
+        }
+        .build()
+
+    user.updateProfile(profileUpdates)
+        .addOnSuccessListener { onSuccess() }
+        .addOnFailureListener { e -> onFailure(e) }
 }
