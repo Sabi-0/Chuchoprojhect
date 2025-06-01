@@ -1,0 +1,48 @@
+Requisitos Previos
+
+Android Studio (versión Arctic Fox o superior recomendada)
+
+JDK 11 instalado y configurado
+
+Dispositivo o emulador con Android 8.0 (API 26) o superior
+
+Pasos para Configuración Inicial
+Clonar el repositorio:
+git clone https://github.com/tu-usuario/chuchoproject.git
+cd chuchoproject
+
+Sincronizar dependencias:
+Abre el proyecto en Android Studio
+Esperar a que se sincronicen las dependencias
+"File > Sync Project with Gradle Files"
+-----------------------------------------------------------------------------------------------------------------------
+Estructura del proyecto
+app/
+├── src/
+│   ├── main/
+│   │   ├── java/com/example/chuchoprojhect/
+│   │   │   ├── auth/           # Autenticación
+│   │   │   ├── components/     # Componentes reutilizables
+│   │   │   ├── model/          # Modelos de datos
+│   │   │   ├── screen/         # Pantallas principales
+│   │   │   ├── util/           # Utilidades
+│   │   │   ├── viewmodels/     # ViewModels
+│   │   │   └── MainActivity.kt # Punto de entrada
+│   │   └── res/                # Recursos
+│   └── test/                   # Pruebas unitarias
+build.gradle                    # Configuración principal
+
+-----------------------------------------------------------------------------------------------------------------------
+Flujo Básico de la Aplicación
+
+Pantalla de Inicio:
+Muestra lista de perros disponibles
+Barra de búsqueda funcional
+
+Agregar Perro:
+Formulario con campos: nombre, descripción, ubicación, contacto e imagen
+Los datos se guardan en Firestore/Firebase Storage
+
+Autenticación:
+Login con Email/Google
+Modo invitado disponible
