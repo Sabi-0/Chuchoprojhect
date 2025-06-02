@@ -7,26 +7,26 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.rememberAsyncImagePainter
-
 
 @Composable
 fun AgregarPerroScreen(
-    onSubmit: (String, String, String, String, Uri?, () -> Unit) -> Unit
+    onSubmit: (String, String, String, String, String, Uri?, () -> Unit) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var lugar by remember { mutableStateOf("") }
     var contacto by remember { mutableStateOf("") }
+    var raza by remember { mutableStateOf("") }
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -47,38 +47,70 @@ fun AgregarPerroScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Agregar perro", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "Agregar perro",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
 
             Spacer(Modifier.height(16.dp))
+
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
-                label = { Text("Nombre del perrito") }
+                label = { Text("Nombre del perrito") },
+                modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = descripcion,
                 onValueChange = { descripcion = it },
-                label = { Text("Descripción") }
+                label = { Text("Descripción") },
+                modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = lugar,
                 onValueChange = { lugar = it },
-                label = { Text("¿De dónde nos saludas?") }
+                label = { Text("Ubicación") },
+                modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = contacto,
                 onValueChange = { contacto = it.filter { char -> char.isDigit() } },
-                label = { Text("Número de contacto (+502)") },
+                label = { Text("Teléfono de contacto") },
                 placeholder = { Text("Ejemplo: 12345678") },
+                modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = raza,
+                onValueChange = { raza = it },
+                label = { Text("Raza del perro") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Spacer(Modifier.height(12.dp))
 
-            Button(onClick = { launcher.launch("image/*") }) {
-                Text("Sube tu imagen")
+            Button(
+                onClick = { launcher.launch("image/*") },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color(0xFFFFA64D)
+                )
+            ) {
+                Text("Seleccionar imagen")
             }
 
             imagenUri?.let {
@@ -86,7 +118,9 @@ fun AgregarPerroScreen(
                 Image(
                     painter = rememberAsyncImagePainter(it),
                     contentDescription = "Imagen seleccionada",
-                    modifier = Modifier.size(150.dp).padding(8.dp)
+                    modifier = Modifier
+                        .size(150.dp)
+                        .padding(8.dp)
                 )
             }
 
@@ -94,19 +128,27 @@ fun AgregarPerroScreen(
 
             Button(
                 onClick = {
+                    if (nombre.isBlank() || descripcion.isBlank() || lugar.isBlank() || contacto.isBlank() || raza.isBlank()) {
+                        return@Button
+                    }
+
                     val contactoCompleto = if (contacto.startsWith("+502")) contacto else "+502$contacto"
-                    onSubmit(nombre, descripcion, lugar, contactoCompleto, imagenUri) {
-                        // Resetear campos después de que se haya guardado con éxito
+                    onSubmit(nombre, descripcion, lugar, contactoCompleto, raza, imagenUri) {
                         nombre = ""
                         descripcion = ""
                         lugar = ""
                         contacto = ""
+                        raza = ""
                         imagenUri = null
                     }
                 },
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF8B5E3C))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF8B5E3C),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Subir", color = Color.White)
+                Text("Publicar perro")
             }
         }
     }
@@ -115,5 +157,5 @@ fun AgregarPerroScreen(
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun AgregarPerroScreenPreview() {
-    AgregarPerroScreen(onSubmit = { _, _, _, _, _,_ -> })
+    AgregarPerroScreen(onSubmit = { _, _, _, _, _, _, _ -> })
 }

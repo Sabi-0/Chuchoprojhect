@@ -15,18 +15,21 @@ fun guardarPerroEnFirestore(
     descripcion: String,
     lugar: String,
     contacto: String,
+    raza: String,
     imageUrl: String,
     onSuccess: () -> Unit,
     onFailure: () -> Unit
 ) {
     val db = FirebaseFirestore.getInstance()
-    val perro = hashMapOf(
+    val perro = hashMapOf<String, Any>(
         "nombre" to nombre,
         "descripcion" to descripcion,
         "lugar" to lugar,
         "contacto" to contacto,
+        "raza" to raza,
         "imagenUrl" to imageUrl,
         "timestamp" to System.currentTimeMillis(),
+        "userId" to (user?.uid ?: ""),
         "usuarioNombre" to (user?.displayName ?: "Anónimo"),
         "usuarioFoto" to (user?.photoUrl?.toString() ?: "")
     )
@@ -46,8 +49,12 @@ fun obtenerPerrosDesdeFirestore(
         .orderBy("timestamp")
         .get()
         .addOnSuccessListener { result ->
-            val perros = result.mapNotNull { doc ->
-                doc.toObject(Perro::class.java)
+            val perros = result.documents.mapNotNull { doc ->
+                try {
+                    doc.toObject(Perro::class.java)?.copy(id = doc.id)
+                } catch (e: Exception) {
+                    null
+                }
             }
             onSuccess(perros)
         }
@@ -55,7 +62,6 @@ fun obtenerPerrosDesdeFirestore(
             onFailure()
         }
 }
-
 fun subirImagenAFirebase(
     uri: Uri?,
     onSuccess: (String) -> Unit,

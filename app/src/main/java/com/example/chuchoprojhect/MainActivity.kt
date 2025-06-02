@@ -29,7 +29,7 @@ import com.example.chuchoprojhect.util.subirImagenAFirebase
 import com.google.firebase.FirebaseApp
 import android.util.Log
 import androidx.compose.ui.unit.dp
-
+import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,34 +106,38 @@ fun AppNavigation(
             startDestination = Screen.Screen1.route,
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable(Screen.Screen1.route) { Screen1() }
+            composable(Screen.Screen1.route) {
+                PantallaListaPerros(authViewModel = authViewModel)
+            }
             composable(Screen.Screen2.route) {
-                    AgregarPerroScreen { nombre, descripcion, lugar, contacto, uri, limpiarCampos ->
-                        subirImagenAFirebase(
-                            uri,
-                            onSuccess = { imageUrl ->
-                                guardarPerroEnFirestore(
-                                    user,
-                                    nombre,
-                                    descripcion,
-                                    lugar,
-                                    contacto,
-                                    imageUrl,
-                                    onSuccess = {
-                                        limpiarCampos()  // Limpiar campos en la UI
-                                        Log.d("Firebase", "Perro guardado exitosamente.")
-                                    },
-                                    onFailure = {
-                                        Log.e("Firebase", "Error al guardar datos en Firestore.")
-                                    }
-                                )
-                            },
-                            onFailure = {
-                                Log.e("Firebase", "Error al subir imagen.")
-                            }
-                        )
-                    }
+                AgregarPerroScreen { nombre, descripcion, lugar, contacto, raza, uri, limpiarCampos ->
+                    subirImagenAFirebase(
+                        uri,
+                        onSuccess = { imageUrl ->
+                            guardarPerroEnFirestore(
+                                user = user,
+                                nombre = nombre,
+                                descripcion = descripcion,
+                                lugar = lugar,
+                                contacto = contacto,
+                                raza = raza,
+                                imageUrl = imageUrl,
+                                onSuccess = {
+                                    limpiarCampos()
+                                    Log.d("Firebase", "Perro guardado exitosamente.")
+                                    navController.popBackStack()
+                                },
+                                onFailure = {
+                                    Log.e("Firebase", "Error al guardar datos en Firestore.")
+                                }
+                            )
+                        },
+                        onFailure = {
+                            Log.e("Firebase", "Error al subir imagen.")
+                        }
+                    )
                 }
+            }
             composable(Screen.Screen3.route) {
                 ProfileScreen(
                     authViewModel = authViewModel,
@@ -162,21 +166,22 @@ sealed class Screen(val route: String, val title: String) {
 }
 
 @Composable
-fun Screen1() {
-    PantallaListaPerros()
-}
-
-@Composable
 fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    BottomAppBar {
+    NavigationBar {
         Screen.items.forEach { screen ->
             NavigationBarItem(
                 icon = {
                     Icon(
-                        painter = painterResource(android.R.drawable.ic_dialog_info),
+                        painter = painterResource(
+                            when (screen) {
+                                Screen.Screen1 -> android.R.drawable.ic_menu_view
+                                Screen.Screen2 -> android.R.drawable.ic_menu_add
+                                Screen.Screen3 -> android.R.drawable.ic_menu_my_calendar
+                            }
+                        ),
                         contentDescription = screen.title
                     )
                 },
