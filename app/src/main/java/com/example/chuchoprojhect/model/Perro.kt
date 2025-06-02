@@ -1,6 +1,6 @@
 package com.example.chuchoprojhect.model
 
-
+//definimos los datos que se necesitan guardar
 data class Perro(
     val id: String = "",
     val userId: String = "",

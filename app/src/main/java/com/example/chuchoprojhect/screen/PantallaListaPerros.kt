@@ -28,10 +28,16 @@ import androidx.compose.ui.draw.clip
 
 @Composable
 fun PantallaListaPerros(authViewModel: AuthViewModel = viewModel()) {
+
+    // Contexto Android para usar Intents y otros recursos
     val context = LocalContext.current
+    // Estado que contiene la información del usuario actual, usando un ViewModel para autenticación
     val user by authViewModel.userState.collectAsState()
+    // Estado local que guarda la lista de perros que vienen de Firestore
     var listaPerros by remember { mutableStateOf<List<Perro>>(emptyList()) }
+    // Estado para el filtro de búsqueda, puede ser null (sin filtro)
     var filtro by remember { mutableStateOf<String?>(null) }
+    // Estado para mostrar si la lista está cargando datos
     var isLoading by remember { mutableStateOf(true) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var perroToDelete by remember { mutableStateOf<Perro?>(null) }
@@ -43,13 +49,16 @@ fun PantallaListaPerros(authViewModel: AuthViewModel = viewModel()) {
             .document(perroId)
             .delete()
             .addOnSuccessListener {
+                // Actualiza la lista local filtrando el perro eliminado
                 listaPerros = listaPerros.filter { it.id != perroId }
             }
             .addOnFailureListener {
+                // Loguea error si falla la eliminación
                 Log.e("Firebase", "Error al eliminar perro", it)
             }
     }
 
+    // Efecto que se ejecuta una vez al iniciar el Composable para cargar los perros desde Firestore
     LaunchedEffect(true) {
         obtenerPerrosDesdeFirestore(
             onSuccess = { perros ->
@@ -62,7 +71,7 @@ fun PantallaListaPerros(authViewModel: AuthViewModel = viewModel()) {
         )
     }
 
-    // Filtrado
+    // Aplica el filtro de búsqueda a la lista de perros
     val perrosFiltrados = listaPerros.filter { perro ->
         filtro?.let { filtroTexto ->
             perro.lugar.contains(filtroTexto, ignoreCase = true) ||
@@ -96,6 +105,7 @@ fun PantallaListaPerros(authViewModel: AuthViewModel = viewModel()) {
         )
     }
 
+    // Estructura principal de la UI: columna con campo de búsqueda y lista o mensajes
     Column(modifier = Modifier.fillMaxSize()) {
         // Barra de búsqueda
         OutlinedTextField(
@@ -152,7 +162,7 @@ fun PantallaListaPerros(authViewModel: AuthViewModel = viewModel()) {
         }
     }
 }
-
+// Composable que representa una tarjeta individual con los detalles de un perro
 @Composable
 fun DogCard(
     perro: Perro,
@@ -182,6 +192,7 @@ fun DogCard(
                             .clip(MaterialTheme.shapes.small)
                     )
                 } else {
+                    // Si no tiene foto, muestra un ícono por defecto
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Sin foto",
@@ -190,6 +201,8 @@ fun DogCard(
                             .padding(end = 8.dp)
                     )
                 }
+
+                // Nombre del usuario
                 Text(
                     text = perro.usuarioNombre,
                     style = MaterialTheme.typography.labelMedium
@@ -204,6 +217,7 @@ fun DogCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Imagen del perro, escalada para cubrir el área
             Image(
                 painter = rememberAsyncImagePainter(perro.imagenUrl),
                 contentDescription = "Imagen de ${perro.nombre}",
@@ -215,12 +229,13 @@ fun DogCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Descripción, ubicación y contacto del perro
             Text(text = perro.descripcion)
             Text(text = "Ubicación: ${perro.lugar}")
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = "Contacto: ${perro.contacto}")
 
-            // Botones de acción
+            // // Fila con botones para compartir y eliminar (solo si es dueño)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -252,7 +267,7 @@ fun DogCard(
         }
     }
 }
-
+// Función para compartir la información de un perro usando Intent Android
 fun shareDogInfo(
     context: Context,
     nombre: String,

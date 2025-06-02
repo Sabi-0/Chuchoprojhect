@@ -25,17 +25,18 @@ import com.example.chuchoprojhect.util.subirImagenAFirebase
 
 @Composable
 fun ProfileScreen(
-    authViewModel: AuthViewModel,
-    darkModeEnabled: Boolean,
-    onToggleDarkMode: (Boolean) -> Unit,
-    onSignOut: () -> Unit,
-    onImageSelected: (Uri) -> Unit = {},
-    onNameChanged: (String) -> Unit = {}
+    authViewModel: AuthViewModel, // ViewModel para autenticación
+    darkModeEnabled: Boolean, // Estado actual del modo oscuro
+    onToggleDarkMode: (Boolean) -> Unit,  // Función para alternar el modo oscuro
+    onSignOut: () -> Unit, // Función que se llama al cerrar sesión
+    onImageSelected: (Uri) -> Unit = {},   // Callback cuando se selecciona una imagen
+    onNameChanged: (String) -> Unit = {}  // Callback cuando cambia el nombre
 
 ) {
-    val user = authViewModel.getCurrentUser()
+    val user = authViewModel.getCurrentUser() // Usuario actualmente autenticado
     val context = LocalContext.current
 
+    // Estados locales para el nombre y la foto
     var name by remember { mutableStateOf(user?.displayName ?: "") }
     var photoUri by remember { mutableStateOf(user?.photoUrl) }
 
@@ -49,10 +50,11 @@ fun ProfileScreen(
             photoUri = it
             onImageSelected(it)
 
-            // Subir imagen y actualizar perfil
+            // Subir imagen a firebase y actualizar perfil
             subirImagenAFirebase(it,
                 onSuccess = { imageUrl ->
                     user?.let {
+                        // Si se subió correctamente, actualizamos el perfil
                         actualizarPerfilUsuario(
                             user = it,
                             nombre = name,
@@ -67,6 +69,7 @@ fun ProfileScreen(
         }
     }
 
+    //ui
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,7 +78,7 @@ fun ProfileScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Imagen de perfil
+        //  // Imagen de perfil: muestra la foto actual o un ícono si no hay
         if (photoUri != null) {
             Image(
                 painter = rememberAsyncImagePainter(photoUri),
@@ -84,7 +87,7 @@ fun ProfileScreen(
                     .size(120.dp)
                     .clip(CircleShape)
                     .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                    .clickable { launcher.launch("image/*") },
+                    .clickable { launcher.launch("image/*") }, // Al tocar se abre la galería
                 contentScale = ContentScale.Crop
             )
         } else {
@@ -95,14 +98,14 @@ fun ProfileScreen(
                     .size(120.dp)
                     .clip(CircleShape)
                     .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                    .clickable { launcher.launch("image/*") },
+                    .clickable { launcher.launch("image/*") }, // Tocar para seleccionar imagen
                 tint = Color.Gray
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Nombre editable
+        // // Campo para editar el nombre del usuario
         OutlinedTextField(
             value = name,
             onValueChange = {

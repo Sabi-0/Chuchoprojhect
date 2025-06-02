@@ -20,8 +20,11 @@ import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun AgregarPerroScreen(
+    // Función que se llamará cuando el usuario presione "Publicar perro"
     onSubmit: (String, String, String, String, String, Uri?, () -> Unit) -> Unit
 ) {
+
+    // Variables de estado para los campos del formulario
     var nombre by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var lugar by remember { mutableStateOf("") }
@@ -29,12 +32,14 @@ fun AgregarPerroScreen(
     var raza by remember { mutableStateOf("") }
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
 
+    // Lanzador para abrir el selector de contenido (galería/imágenes)
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        imagenUri = uri
+        imagenUri = uri // Guarda la URI de la imagen seleccionada
     }
 
+    //un poco de estilos
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -47,6 +52,8 @@ fun AgregarPerroScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            // Título de la pantalla
             Text(
                 text = "Agregar perro",
                 fontSize = 24.sp,
@@ -56,6 +63,7 @@ fun AgregarPerroScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // Campo para escribir el nombre del perro
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
@@ -65,6 +73,7 @@ fun AgregarPerroScreen(
 
             Spacer(Modifier.height(8.dp))
 
+            // Campo para escribir la descripción
             OutlinedTextField(
                 value = descripcion,
                 onValueChange = { descripcion = it },
@@ -74,6 +83,7 @@ fun AgregarPerroScreen(
 
             Spacer(Modifier.height(8.dp))
 
+            // Campo para escribir el lugar/ubicación
             OutlinedTextField(
                 value = lugar,
                 onValueChange = { lugar = it },
@@ -83,6 +93,7 @@ fun AgregarPerroScreen(
 
             Spacer(Modifier.height(8.dp))
 
+            // Campo para teléfono
             OutlinedTextField(
                 value = contacto,
                 onValueChange = { contacto = it.filter { char -> char.isDigit() } },
@@ -94,6 +105,7 @@ fun AgregarPerroScreen(
 
             Spacer(Modifier.height(8.dp))
 
+            // Campo para la raza del perro
             OutlinedTextField(
                 value = raza,
                 onValueChange = { raza = it },
@@ -103,6 +115,7 @@ fun AgregarPerroScreen(
 
             Spacer(Modifier.height(12.dp))
 
+            // Botón para seleccionar imagen
             Button(
                 onClick = { launcher.launch("image/*") },
                 colors = ButtonDefaults.buttonColors(
@@ -113,6 +126,8 @@ fun AgregarPerroScreen(
                 Text("Seleccionar imagen")
             }
 
+
+            // Si hay imagen seleccionada, se muestra aquí
             imagenUri?.let {
                 Spacer(Modifier.height(12.dp))
                 Image(
@@ -126,13 +141,19 @@ fun AgregarPerroScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // Botón para publicar el perro
             Button(
                 onClick = {
+
+                    // Validar que no haya campos vacíos obligatorios
                     if (nombre.isBlank() || descripcion.isBlank() || lugar.isBlank() || contacto.isBlank() || raza.isBlank()) {
                         return@Button
                     }
 
+                    // Añade prefijo +502 si el teléfono no lo tiene (Guatemala)
                     val contactoCompleto = if (contacto.startsWith("+502")) contacto else "+502$contacto"
+
+                    // Llama a onSubmit con todos los datos y una función para limpiar el formulario
                     onSubmit(nombre, descripcion, lugar, contactoCompleto, raza, imagenUri) {
                         nombre = ""
                         descripcion = ""

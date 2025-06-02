@@ -34,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Inicializar Firebase
         FirebaseApp.initializeApp(this)
         enableEdgeToEdge()
         setContent {
@@ -44,12 +45,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MyApp() {
+    // Controla si el tema oscuro está activado
     var darkModeEnabled by remember { mutableStateOf(false) }
 
-    ChuchoprojhectTheme(darkTheme = darkModeEnabled) {
+    ChuchoprojhectTheme(darkTheme = darkModeEnabled) { // Aplica el tema
         Surface(modifier = Modifier.fillMaxSize()) {
-            val authViewModel: AuthViewModel = viewModel()
-            AppNavigation(
+            val authViewModel: AuthViewModel = viewModel() // ViewModel para autenticación
+
+            AppNavigation( // Llama a la navegación principal de la app
                 authViewModel = authViewModel,
                 darkModeEnabled = darkModeEnabled,
                 onToggleDarkMode = { enabled -> darkModeEnabled = enabled }
@@ -65,15 +68,16 @@ fun AppNavigation(
     darkModeEnabled: Boolean,
     onToggleDarkMode: (Boolean) -> Unit
 ) {
-    val navController = rememberNavController()
-    var showLoginDialog by remember { mutableStateOf(false) }
-    val user by authViewModel.userState.collectAsState()
+    val navController = rememberNavController() // Crea el controlador de navegación
+    var showLoginDialog by remember { mutableStateOf(false) } // Estado para mostrar login
+    val user by authViewModel.userState.collectAsState() // Escucha el usuario autenticado
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Adopta un perrito") },
                 actions = {
+                    // Botón de login/logout en la barra superior
                     AuthButton(
                         authViewModel = authViewModel,
                         modifier = Modifier.padding(end = 8.dp),
@@ -82,6 +86,7 @@ fun AppNavigation(
                 }
             )
         },
+        // Barra inferior de navegación
         bottomBar = { BottomNavigationBar(navController) }
     ) { paddingValues ->
 
@@ -103,12 +108,15 @@ fun AppNavigation(
 
         NavHost(
             navController = navController,
-            startDestination = Screen.Screen1.route,
+            startDestination = Screen.Screen1.route, // Ruta inicial
             modifier = Modifier.padding(paddingValues)
         ) {
+
+            // Pantalla principal: lista de perros
             composable(Screen.Screen1.route) {
                 PantallaListaPerros(authViewModel = authViewModel)
             }
+            // Pantalla para agregar nuevo perro
             composable(Screen.Screen2.route) {
                 AgregarPerroScreen { nombre, descripcion, lugar, contacto, raza, uri, limpiarCampos ->
                     subirImagenAFirebase(
@@ -123,6 +131,7 @@ fun AppNavigation(
                                 raza = raza,
                                 imageUrl = imageUrl,
                                 onSuccess = {
+                                    // Limpia el formulario
                                     limpiarCampos()
                                     Log.d("Firebase", "Perro guardado exitosamente.")
                                     navController.popBackStack()
@@ -138,6 +147,7 @@ fun AppNavigation(
                     )
                 }
             }
+            // Pantalla de perfil
             composable(Screen.Screen3.route) {
                 ProfileScreen(
                     authViewModel = authViewModel,
@@ -155,6 +165,7 @@ fun AppNavigation(
     }
 }
 
+//definimos las rutas de navegación
 sealed class Screen(val route: String, val title: String) {
     object Screen1 : Screen("screen1", "Inicio")
     object Screen2 : Screen("screen2", "Publicar")
@@ -167,33 +178,41 @@ sealed class Screen(val route: String, val title: String) {
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
+
+    // Obtiene la entrada actual del back stack de navegación (pantalla actual)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+// Componente que dibuja la barra inferior de navegación (Material 3)
     NavigationBar {
+        // Itera sobre la lista de pantallas definidas en Screen.items
         Screen.items.forEach { screen ->
             NavigationBarItem(
+                // Icono para cada ítem según la pantalla
                 icon = {
                     Icon(
                         painter = painterResource(
                             when (screen) {
-                                Screen.Screen1 -> android.R.drawable.ic_menu_view
-                                Screen.Screen2 -> android.R.drawable.ic_menu_add
-                                Screen.Screen3 -> android.R.drawable.ic_menu_my_calendar
+                                Screen.Screen1 -> android.R.drawable.ic_menu_view // Icono para "Inicio"
+                                Screen.Screen2 -> android.R.drawable.ic_menu_add // Icono para "Publicar"
+                                Screen.Screen3 -> android.R.drawable.ic_menu_my_calendar // Icono para "Perfil"
                             }
                         ),
                         contentDescription = screen.title
                     )
                 },
-                label = { Text(screen.title) },
-                selected = currentRoute == screen.route,
+                label = { Text(screen.title) }, // Texto debajo del icono
+                selected = currentRoute == screen.route, // Resalta el ítem si es la ruta actual
                 onClick = {
+
+                    // Navega a la ruta correspondiente al hacer clic
                     navController.navigate(screen.route) {
+                        // Elimina pantallas anteriores hasta la raíz, pero guarda su estado
                         popUpTo(navController.graph.startDestinationId) {
                             saveState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
+                        launchSingleTop = true // Evita duplicar la misma pantalla en el stack
+                        restoreState = true  // Restaura el estado guardado si estaba en back stack
                     }
                 }
             )
